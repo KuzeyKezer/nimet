@@ -1,0 +1,732 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f5f5f5;
+  color: #222;
+}
+
+section {
+  padding: 60px 8%;
+}
+
+/* --- Ortak Kart Stili --- */
+section.card {
+  background: #ffffff;
+  margin: 40px auto;
+  padding: 40px;
+  width: 90%;
+  max-width: 1200px;
+  border-radius: 20px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+}
+
+/* --- HERO BÖLÜMÜ --- */
+.hero {
+    /* Yazıları sola yasla ve görseli tüm bölüme yay */
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 100px 8%;
+    min-height: 85vh;
+    width: 100%;
+    box-sizing: border-box;
+    
+    /* ÖNEMLİ: Görsel ve Sis Geçişi */
+    background: linear-gradient(to right, 
+        rgba(255, 255, 255, 1) 30%, 
+        rgba(255, 255, 255, 0.7) 50%, 
+        rgba(255, 255, 255, 0) 100%), 
+        url(waste\ food\ bakery\ v1.jpg);
+    
+    background-size: cover;
+    background-position: center right;
+    background-repeat: no-repeat;
+    background-attachment: scroll;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-content {
+    max-width: 600px;
+    position: relative;
+    z-index: 10; /* Yazılar en üstte kalsın */
+}
+/* Sağdaki boş kalan kutunun animasyonunu/görünümünü temizle */
+.hero-illustration {
+    display: none; /* Eğer hala görünüyorsa bunu ekleyerek tamamen gizleyebilirsin */
+}.hero-content {
+  max-width: 650px;
+}
+
+.hero-pill {
+  display: inline-block;
+  background: #fff2d9;
+  color: #b47316;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.hero-title {
+  font-size: 34px;
+  margin: 16px 0;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.hero-text {
+  font-size: 16px;
+  color: #555;
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 16px;
+}
+
+.btn {
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: 0.2s;
+  text-decoration: none; /* İŞTE O ÇİZGİYİ BU SATIR KALDIRIR */
+  display: inline-flex; /* Butonun içindeki metni ortalar */
+  align-items: center;
+  justify-content: center;
+}
+
+.btn.primary {
+  background: #d9902e;
+  color: #fff;
+}
+.btn.primary:hover {
+  background: #c27d20;
+}
+
+.btn.ghost {
+  background: #ffffff;
+  border: 1px solid #ddd;
+  color: #333;
+}
+.btn.ghost:hover {
+  background: #f2f2f2;
+}
+/* --- VİZYON & MİSYON --- */
+.vm-container {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 50px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+  margin-top: 40px;
+}
+
+.vm-title {
+  font-size: 32px;
+  font-weight: 800;
+  margin-bottom: 14px;
+}
+
+.vm-sub {
+  font-size: 18px;
+  color: #555;
+  line-height: 1.6;
+  margin-bottom: 40px;
+}
+
+.vm-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+
+.vm-box {
+  background: #fafafa;
+  border-radius: 16px;
+  padding: 26px;
+  border: 1px solid #e5e5e5;
+}
+
+.vm-box h3 {
+  margin-top: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.vm-box p {
+  color: #444;
+  line-height: 1.6;
+}
+
+/* --- MODEL NASIL ÇALIŞIR & SIK SORULAN SORULAR --- */
+.flow-container {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 50px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+  margin-top: 40px;
+}
+
+.flow-title {
+  font-size: 30px;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+
+.flow-sub {
+  font-size: 16px;
+  color: #555;
+  margin-bottom: 30px;
+  line-height: 1.6;
+}
+
+.flow-steps {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.flow-step {
+  background: #fafafa;
+  border-radius: 16px;
+  padding: 20px 18px 18px;
+  border: 1px solid #e5e5e5;
+  position: relative;
+}
+
+.flow-step-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.flow-step-badge {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: #d9902e;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 15px;
+}
+
+.flow-step-title {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.flow-step p {
+  margin: 0;
+  font-size: 14px;
+  color: #444;
+  line-height: 1.55;
+}
+
+.flow-note {
+  margin-top: 26px;
+  font-size: 13px;
+  color: #666;
+  border-left: 3px solid #d9902e;
+  padding-left: 10px;
+  line-height: 1.6;
+}
+
+/* SSS & Accordion Stili */
+#sss {
+  max-width: 900px;
+  margin: 40px auto;
+}
+#sss h2 {
+  text-align: center;
+  color: #d35400;
+  margin-bottom: 25px;
+}
+.accordion {
+  background: white;
+  color: #333;
+  cursor: pointer;
+  padding: 16px 20px;
+  width: 100%;
+  border: 1px solid #f3f3f3;
+  border-radius: 10px;
+  text-align: left;
+  outline: none;
+  font-size: 17px;
+  font-weight: 600;
+  transition: 0.25s;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.accordion:hover {
+  background: #fff6ee;
+  border-color: #e67e22;
+}
+.accordion.active {
+  background: #fff3e6;
+  border-color: #d35400;
+  color: #d35400;
+}
+.accordion:after {
+  content: '+';
+  font-size: 22px;
+  color: #d35400;
+  font-weight: bold;
+  transition: 0.25s;
+}
+
+.accordion.active:after {
+  content: '-';
+  font-size: 26px;
+}
+.panel {
+  padding: 0 18px;
+  background: #fff;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+  border-left: 4px solid #d35400;
+  border-radius: 0 0 10px 10px;
+  margin-bottom: 10px;
+}
+
+.panel p {
+  padding: 18px 10px;
+  color: #444;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.panel strong {
+  color: #d35400;
+}
+
+/* --- İŞLETME PANELİ STİLLERİ --- */
+h2 {
+  font-size: 28px;
+  color: #222;
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+h3 {
+  font-size: 18px;
+  color: #333;
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+.muted {
+  color: #666;
+  line-height: 1.6;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  margin-top: 20px;
+}
+
+/* KARTLAR */
+.urunBox,
+.kutu-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 18px 20px;
+  margin-bottom: 10px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+  border: 1px solid #eee;
+  transition: 0.25s ease;
+}
+
+.urunBox:hover,
+.kutu-card:hover {
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.10);
+}
+
+.name {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+label {
+  font-size: 14px;
+  color: #555;
+  margin-top: 10px;
+  display: block;
+}
+
+input,
+select {
+  width: 100%;
+  margin-top: 5px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+/* BUTTONS (Mini/Ghost/Primary) */
+.btn-mini,
+.btn-xs {
+  padding: 5px 9px;
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-mini.edit {
+  background: #ffe9cc;
+  color: #b96b09;
+}
+.btn-mini.delete {
+  background: #ffe1e1;
+  color: #a93c3c;
+}
+
+.btn-xs.reload {
+  background: #eaf7ff;
+  color: #2b7fc8;
+}
+.btn-xs.edit {
+  background: #fff3ca;
+  color: #af8600;
+}
+.btn-xs.delete {
+  background: #ffe1e1;
+  color: #b93a3a;
+}
+
+.urunBox-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.leftover-empty {
+  font-size: 14px;
+  color: #888;
+  margin-top: 6px;
+}
+
+/* KUTU TASARIMI */
+.kutu-card {
+  border-left: 6px solid #d9902e;
+}
+
+.kutu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.kutu-icon {
+  background: #d9902e;
+  color: #fff;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 800;
+}
+
+.kutu-meta {
+  font-size: 13px;
+  color: #777;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.volume-info {
+  font-size: 13px;
+  color: #2b7fc8; /* Lojistik mavisi */
+  font-weight: 600;
+}
+
+.kutu-line {
+  padding: 6px 0;
+  font-size: 14px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.kutu-actions {
+  text-align: right;
+  margin-top: 10px;
+}
+
+/* --- Kutu Doluluk (Progress Bar) Stilleri --- */
+.progress-container {
+  background-color: #eee;
+  border-radius: 8px;
+  height: 10px;
+  width: 100%;
+  margin: 4px 0 12px 0;
+  overflow: hidden;
+  border: 1px solid #e0e0e0;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #d9902e, #f2ad4e);
+  width: 0%;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.progress-label {
+  font-size: 11px;
+  color: #666;
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+}
+
+/* MODAL */
+.modal-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+}
+
+.modal {
+  background: white;
+  padding: 26px;
+  width: 350px;
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
+  animation: fade 0.25s ease;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  align-items: center;
+}
+
+.modal-close {
+  font-size: 22px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #666;
+}
+
+@keyframes fade {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Üst buton grubu */
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* ETKİ SKORU BÖLÜMÜ */
+.impact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-top: 20px;
+}
+
+.impact-card {
+  background: #fffaf3;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid #ffe2ba;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+.impact-card h3 {
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+.impact-highlight {
+  font-size: 20px;
+  font-weight: 800;
+  color: #d9902e;
+}
+
+.impact-row {
+  margin-top: 6px;
+  font-size: 14px;
+  color: #444;
+}
+
+.impact-note {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #777;
+}
+
+.impact-row-eco {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed #e6c597;
+  font-weight: 700;
+  color: #2a6a57;
+  font-size: 15px;
+}
+
+/* Saha Verileri Stilleri */
+.field-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+.field-card {
+  background: #fafafa;
+  border-radius: 16px;
+  padding: 26px;
+  border: 1px solid #e5e5e5;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+}
+.field-card h3 {
+  margin: 0 0 10px;
+  font-size: 20px;
+  font-weight: 700;
+}
+.field-card p {
+  line-height: 1.6;
+  color: #444;
+}
+
+/* Global Analiz Stilleri */
+#global-analiz .global-grid {
+  display: grid;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+#global-analiz .global-card {
+  background: white;
+  border-radius: 12px;
+  padding: 22px;
+  border: 1px solid #f0f0f0;
+  box-shadow: 0 4px 10px rgb(0 0 0 / 4%);
+  transition: 0.25s;
+}
+
+#global-analiz .global-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px rgb(0 0 0 / 10%);
+}
+
+#global-analiz .global-card h3 {
+  color: #d35400;
+  margin-bottom: 12px;
+}
+
+#global-analiz .global-card ul {
+  margin: 10px 0 15px 20px;
+  color: #444;
+}
+
+#global-analiz .global-card li {
+  margin-bottom: 5px;
+}
+
+#global-analiz .global-highlight {
+  margin-top: 30px;
+  background: #fff3e6;
+  padding: 18px;
+  border-left: 6px solid #d35400;
+  border-radius: 10px;
+  font-size: 17px;
+  line-height: 1.5;
+  color: #333;
+  text-align: center;
+}
+
+/* Media Queries */
+@media (max-width: 1000px) {
+  #global-analiz .global-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 900px) {
+  .hero {
+    grid-template-columns: 1fr;
+    padding: 50px 6%;
+  }
+  .vm-columns,
+  .flow-steps,
+  .field-cards,
+  .grid-2,
+  .impact-grid {
+    grid-template-columns: 1fr;
+  }
+}
+/* --- 2. AKIŞ VE SCROLL EFEKTLERİ --- */
+html {
+    scroll-behavior: smooth;
+}
+
+.reveal-hidden {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.reveal-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+/* Mevcut hero-illustration sınıfını güncelliyoruz */
+.hero-illustration {
+    position: relative;
+    overflow: hidden;
+}
+
+/* --- GÜNCEL ANİMASYON VE AKIŞ BLOĞU --- */
+
+/* Tüm sayfa kaydırmasını yağ gibi akıcı yapar */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Bölümlerin hem aşağı hem yukarı kayarken yumuşakça belirmesi */
+.reveal-hidden {
+    opacity: 0;
+    transform: translateY(30px);
+    /* cubic-bezier ile daha "premium" bir ivme kazandırdık */
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); 
+    will-change: transform, opacity; /* Tarayıcı performansını optimize eder */
+}
+
+.reveal-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
