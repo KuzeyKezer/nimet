@@ -474,3 +474,32 @@ async function veriyiGonder() {
 
 // Fonksiyonu globale bağlayalım ki HTML'deki butondan (onclick) çağrılabilsin
 window.veriyiGonder = veriyiGonder;
+function aiSimulasyon() {
+    // 1. Yükleniyor animasyonunu göster
+    document.getElementById('aiYukleniyor').style.display = 'block';
+    
+    // 2. 3 saniye bekle (Sanki AI düşünüyormuş gibi)
+    setTimeout(() => {
+        // 3. Simülasyon verileri (Buraya istediğin rakamları yazabilirsin)
+        const saptananUrunler = {
+            "Gevrek": 42,
+            "Poğaça": 17,
+            "Kurabiye": 38
+        };
+
+        // 4. Bu verileri sisteme (leftovers) aktar
+        Object.keys(saptananUrunler).forEach(name => {
+            leftovers[name] = (leftovers[name] || 0) + saptananUrunler[name];
+        });
+
+        // 5. Ekranı güncelle
+        renderLeftovers();
+        document.getElementById('aiYukleniyor').style.display = 'none';
+        
+        alert("✅ Yapay Zeka Başarıyla Saydı:\n- 42 Gevrek (Açmalar dahil)\n- 17 Poğaça\n- 38 Kurabiye");
+        
+        // 6. OTOMATİK PAKETLEMEYİ TETİKLE (Senin en sevdiğin kısım)
+        otomatikKutular();
+        
+    }, 3000);
+}
