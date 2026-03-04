@@ -213,7 +213,22 @@
                 <button class="btn primary" type="button" onclick="tekKutuOlustur('medium')">Orta Kutu Oluştur</button>
                 <button class="btn primary" type="button" onclick="tekKutuOlustur('large')">Büyük Kutu Oluştur</button>
                 <button class="btn ghost" type="button" onclick="otomatikKutular()">Otomatik Karışık Kutu</button>
+                
             </div>
+            <div style="margin: 20px 0; padding: 15px; border: 2px dashed #2a6a57; border-radius: 10px; text-align: center;">
+    <h3 style="color: #2a6a57;">🤖 AI Akıllı Sayım</h3>
+    <p style="font-size: 13px; color: #666;">Tezgahın fotoğrafını çekin, AI ürünleri sizin için saysın.</p>
+    
+    <input type="file" accept="image/*" capture="camera" id="aiKamera" style="display: none;" onchange="aiSimulasyon()">
+    
+    <button class="btn" style="background-color: #2a6a57; color: white; padding: 10px 20px;" onclick="document.getElementById('aiKamera').click()">
+        📸 Tezgahı Tara ve Say
+    </button>
+
+    <div id="aiYukleniyor" style="display: none; margin-top: 10px;">
+        <div class="spinner"></div> <p>Yapay Zeka ürünleri analiz ediyor...</p>
+    </div>
+</div>
 
             <div id="kalanListesi" style="margin-top:18px;"></div>
             <h3 style="margin-top:20px;">Oluşturulan Kutular</h3>
