@@ -374,3 +374,50 @@ document.querySelectorAll('section').forEach(section => {
     section.classList.add('reveal-hidden');
     observer.observe(section);
 });
+/* ---------------- FIREBASE BULUT AKTARIMI ---------------- */
+
+async function veriyiGonder() {
+    // Kutuların boş olup olmadığını kontrol et
+    if (boxes.length === 0) {
+        alert("Buluta gönderilecek aktif bir kutu bulunamadı. Lütfen önce kutu oluşturun.");
+        return;
+    }
+
+    try {
+        // Gönderilecek veri paketini hazırla
+        const veriPaketi = {
+            isletmeAdi: "isletme_001", // Burası dinamikleştirilebilir
+            isletmeId: "isletme_001",
+            tarih: new Date().toISOString(),
+            kaydedilenKutular: boxes.map(box => ({
+                tip: box.label || boxLabel(box.type),
+                icerik: box.items,
+                toplamGram: box.totalGram,
+                toplamMaliyet: box.totalCost,
+                satisFiyati: box.totalCost * 1.20
+            })),
+            etkiMetrikleri: {
+                toplamGram: document.getElementById("bizDayGram")?.textContent || "0",
+                kurtarilanSuLitre: document.getElementById("bizDayWater")?.textContent || "0",
+                karbonAyakIziKg: document.getElementById("bizDayCO2")?.textContent || "0"
+            }
+        };
+
+        // HTML script modülünde window'a bağladığımız Firebase fonksiyonlarını kullanıyoruz
+        const docRef = await window.addDoc(window.collection(window.db, "isletme_kayitlari"), veriPaketi);
+        
+        console.log("Başarıyla kaydedildi. Belge ID:", docRef.id);
+        alert("✅ Veriler Firebase bulut sistemine başarıyla gönderildi!");
+
+        // İsteğe bağlı: Gönderim sonrası paneli sıfırla
+        // boxes = []; 
+        // renderBoxes();
+
+    } catch (error) {
+        console.error("Firebase Hatası:", error);
+        alert("Veri gönderilirken bir sorun oluştu. Lütfen Firebase Console kurallarını kontrol edin.");
+    }
+}
+
+// Fonksiyonu globale bağlayalım ki HTML'deki butondan (onclick) çağrılabilsin
+window.veriyiGonder = veriyiGonder;
