@@ -207,6 +207,8 @@
 
             <div class="button-row">
                 <button class="btn ghost" type="button" onclick="openLeftoverModal()">Gün Sonu Ürün Ekle</button>
+                <button class="btn primary" style="background-color: #2a6a57;" type="button" onclick="veriyiGonder()">
+        MERKEZE GÖNDER (BULUT)  </button>
                 <button class="btn primary" type="button" onclick="tekKutuOlustur('small')">Küçük Kutu Oluştur</button>
                 <button class="btn primary" type="button" onclick="tekKutuOlustur('medium')">Orta Kutu Oluştur</button>
                 <button class="btn primary" type="button" onclick="tekKutuOlustur('large')">Büyük Kutu Oluştur</button>
@@ -414,7 +416,7 @@
 
     <div class="global-highlight">
         NİMET’in hedeflediği üç ana müşteri segmenti:
-        <strong>Dini duyarlılığı olan nüfus • Çevreci nüfus • Öğrenciler</strong><br>
+        <strong>Müslüman nüfus • Çevreci nüfus • Öğrenciler</strong><br>
         Bu üç kitle, Türkiye’de milyonlarca potansiyel kullanıcıyı ifade eder.
     </div>
 
@@ -511,8 +513,31 @@
   </div>
 </div>
 
-<script src="nimet.js"></script>
 
+<script type="module">
+  // Firebase çekirdek ve Firestore kütüphanelerini içe aktarıyoruz
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  // Ekran görüntüsündeki GÜNCEL kimlik bilgilerin
+  const firebaseConfig = {
+    apiKey: "AIzaSyAQQ2Utaak7ovZd-ghCSREMpzuR7fVwZ1k",
+    authDomain: "nimet-16c13.firebaseapp.com",
+    databaseURL: "https://nimet-16c13-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "nimet-16c13",
+    storageBucket: "nimet-16c13.appspot.com",
+    messagingSenderId: "344231788094",
+    appId: "1:344231788094:web:b05913b9ebd12c21fc5b6f",
+    measurementId: "G-E4GE0YW7Q0"
+  };
+
+  // Firebase'i başlat
+  const app = initializeApp(firebaseConfig);
+  
+  // Nimet.js dosyasından erişebilmek için window nesnesine ekliyoruz
+  window.db = getFirestore(app);
+  window.addDoc = addDoc;
+  window.collection = collection;
+</script><script src="nimet.js"></script>
 </body>
 </html> 
-
