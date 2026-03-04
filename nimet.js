@@ -17,7 +17,7 @@ let boxes = [];
 
 const boxMax = {
     small: { gram: 300, hacim: 1000 },
-    medium: { gram: 750, hacim: 2500 },
+    medium: { gram: 600, hacim: 2000 },
     large: { gram: 1500, hacim: 5000 }
 };
 
@@ -281,41 +281,94 @@ function tekKutuOlustur(type) {
     renderBoxes();
 }
 
+
+/* ---------------- EN İYİ SİSTEM: STOK VE HACİM ODAKLI DAĞITIM ---------------- */
+
 function otomatikKutular() {
-    // Burada da adil dağılım algoritmasını büyük kutular için çalıştırıyoruz
     let stock = { ...leftovers };
-    if (Object.keys(stock).length === 0) { alert("Ürün yok!"); return; }
+    let urunIsimleri = Object.keys(stock).filter(n => stock[n] > 0);
+    
+    if (urunIsimleri.length === 0) {
+        alert("Ürün yok! Lütfen önce elde kalan ürünleri girin.");
+        return;
+    }
 
-    while (Object.keys(stock).some(k => stock[k] > 0)) {
-        let items = {};
-        let tGram = 0, tHacim = 0, tCost = 0;
-        let kutuEklendi = false;
-        let sortedNames = Object.keys(stock).sort(() => Math.random() - 0.5);
+    // Orta boy kutu sabit limitleri
+    const LIMIT_GRAM = 600;
+    const LIMIT_HACIM = 2000;
+    const GUVENLI_HACIM = LIMIT_HACIM * 0.90; // %10 boşluk bırakıyoruz (istifleme payı)
 
-        let turDevam = true;
-        while(turDevam){
-            turDevam = false;
-            for(const n of sortedNames){
-                if(stock[n] > 0 && tGram + products[n].gram <= 1500 && tHacim + products[n].hacim <= 5000 && (items[n] || 0) < 4){
-                    stock[n]--;
-                    items[n] = (items[n] || 0) + 1;
-                    tGram += products[n].gram;
-                    tHacim += products[n].hacim;
-                    tCost += products[n].cost;
-                    kutuEklendi = true;
-                    turDevam = true;
-                }
+    // 1. ADIM: Kutu Sayısını Belirle (Hacim Odaklı Planlama)
+    let toplamHacim = urunIsimleri.reduce((acc, n) => acc + (stock[n] * products[n].hacim), 0);
+    let kutuSayisi = Math.ceil(toplamHacim / GUVENLI_HACIM);
+
+    // Kutuları oluştur
+    let yeniKutular = Array.from({ length: kutuSayisi }, (_, i) => ({
+        id: Date.now() + i + Math.random(),
+        type: 'medium',
+        items: {},
+        totalGram: 0,
+        totalHacim: 0,
+        totalCost: 0
+    }));
+
+    // 2. ADIM: Ürünleri Stratejik Dağıt
+    // Ürünleri maliyeti en yüksek olandan en düşük olana sıralıyoruz (Değer Dengesi İçin)
+    let siraliUrunler = urunIsimleri.sort((a, b) => products[b].cost - products[a].cost);
+
+    siraliUrunler.forEach(name => {
+        let adet = stock[name];
+        let p = products[name];
+
+        for (let i = 0; i < adet; i++) {
+            // Her bir adet ürün için en uygun kutuyu bul:
+            yeniKutular.sort((a, b) => {
+                // Öncelik 1: Sığma durumu
+                let aSigar = (a.totalGram + p.gram <= LIMIT_GRAM && a.totalHacim + p.hacim <= LIMIT_HACIM);
+                let bSigar = (b.totalGram + p.gram <= LIMIT_GRAM && b.totalHacim + p.hacim <= LIMIT_HACIM);
+                
+                if (aSigar !== bSigar) return aSigar ? -1 : 1;
+
+                // Öncelik 2: Çeşitlilik (Bu ürün hangisinde daha azsa veya yoksa oraya koy)
+                let aAdet = a.items[name] || 0;
+                let bAdet = b.items[name] || 0;
+                if (aAdet !== bAdet) return aAdet - bAdet;
+
+                // Öncelik 3: Maliyet Dengesi (Hala eşitse maliyeti düşük olanı seç)
+                return a.totalCost - b.totalCost;
+            });
+
+            let hedefKutu = yeniKutular[0];
+
+            // Ürünü kutuya ekle
+            if (hedefKutu.totalGram + p.gram <= LIMIT_GRAM && hedefKutu.totalHacim + p.hacim <= LIMIT_HACIM) {
+                hedefKutu.items[name] = (hedefKutu.items[name] || 0) + 1;
+                hedefKutu.totalGram += p.gram;
+                hedefKutu.totalHacim += p.hacim;
+                hedefKutu.totalCost += p.cost;
+                stock[name]--;
+            } else {
+                // Eğer sığmıyorsa (fiziksel sınır), yeni bir kutu aç ve oraya koy
+                let yeniKutu = {
+                    id: Date.now() + Math.random(),
+                    type: 'medium',
+                    items: { [name]: 1 },
+                    totalGram: p.gram,
+                    totalHacim: p.hacim,
+                    totalCost: p.cost
+                };
+                yeniKutular.push(yeniKutu);
+                stock[name]--;
             }
         }
-        if(!kutuEklendi) break;
-        boxes.push({ id: Date.now() + Math.random(), type: 'large', items, totalGram: tGram, totalHacim: tHacim, totalCost: tCost });
-    }
-    leftovers = stock;
-    renderLeftovers();
-    renderBoxes();
-}
+    });
 
-/* --- MANUEL DÜZELTMELER --- */
+    // 3. ADIM: Veriyi Güncelle ve Göster
+    boxes = yeniKutular;
+    leftovers = {}; // Tüm stok eritildi
+    renderLeftovers();
+    renderBoxes();}
+    /* --- MANUEL DÜZELTMELER --- */
 
 function kutuyaEkle(id, name){
     const box = boxes.find(b=>b.id === id);
