@@ -9,6 +9,13 @@
 <body>
 
 <section class="hero">
+    <nav class="main-nav">
+    <div class="logo">NİMET</div>
+<div class="nav-links">
+    <a href="#etki-skoru">Etki</a>
+    <a href="#sss">SSS</a>
+    <button class="btn ghost" onclick="showLoginModal()">İşletme Girişi</button>
+</div>    </nav>
     <div class="hero-content">
         <span class="hero-pill">Türkiye'nin Yeni Gıda Kurtarma Ekosistemi</span>
         <h1 class="hero-title">
@@ -19,10 +26,10 @@
             getiren, işletmeye kazanç sağlayan ve toplum için sürdürülebilir fayda üreten
             yenilikçi bir model.
         </p>
-        <div class="hero-actions">
-            <a href="#isletme-paneli" class="btn primary">İşletme Olarak Başla</a>
-            <a href="#etki-skoru" class="btn ghost">Tüketici Etki Skorunu Gör</a>
-        </div>
+    <div class="hero-actions">
+    <a href="javascript:void(0)" onclick="showLoginModal()" class="btn primary">İşletme Olarak Başla</a>
+    <a href="harita.html" class="btn ghost">🎁 Sürpriz Kutu Bul</a>
+</div>
     </div>
 </section>
 <section>
@@ -166,8 +173,12 @@
     </div>
 </section>
 
-<section id="isletme-paneli" class="card">    
-<h2>İşletme Paneli (Demo)</h2>
+<!-- style="display: none;" ekleyerek paneli başlangıçta gizliyoruz -->
+<section id="isletme-paneli" class="card" style="display: none;">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+    <h2 style="margin: 0;">İşletme Paneli</h2>
+    <button class="btn ghost" onclick="cikisYap()">🚪 Çıkış Yap</button>
+</div>
     <p class="muted">
         Bu panel, NİMET’in işletme tarafında nasıl çalıştığını gösteren modern bir simülasyondur.
         Ürünler bir kez gramaj ve maliyetleriyle tanımlanır. Gün sonunda sadece adet girilir;
@@ -184,21 +195,19 @@
 
             <div id="urunListesi"></div>
 
-            <form id="urunForm" style="margin-top:20px;">
                 <h3>Yeni Ürün Ekle</h3>
                 <label>Ürün adı</label>
-                <input id="urunAd" type="text" placeholder="Örn: Poğaça" required>
+                <input id="urunAd" type="text" placeholder="Örn: Poğaça">
                 <label>Bir adet gramaj (g)</label>
-                <input id="urunGram" type="number" min="1" placeholder="Örn: 60" required>
+                <input id="urunGram" type="number" min="1" placeholder="Örn: 60">
                 <label>Bir adet hacim (cm³)</label>
-                <input id="urunHacim" type="number" min="1" placeholder="Örn: 150" required>
+                <input id="urunHacim" type="number" min="1" placeholder="Örn: 150">
                 <label>Bir adet maliyet (TL)</label>
-                <input id="urunMaliyet" type="number" step="0.01" min="0" placeholder="Örn: 8" required>
-                <button type="submit" class="btn primary" style="margin-top:14px;">Ürünü Kaydet</button>
-            </form>
-        </div>
-
-        <div>
+                <input id="urunMaliyet" type="number" step="0.01" min="0" placeholder="Örn: 8">
+<button type="button" id="urunKaydetBtn" class="btn primary" style="margin-top:14px;" onclick="window.urunKaydetFonksiyonu(event)">
+    Ürünü Kaydet
+</button>       
+            <div>
             <h3>Gün Sonu Ürünler & Kutular</h3>
             <p class="muted" style="font-size:13px;">
                 Gün sonunda elde kalan ürünleri girin. Sistem, küçük / orta / büyük kutu
@@ -213,6 +222,18 @@
                 <button class="btn primary" type="button" onclick="tekKutuOlustur('medium')">Orta Kutu Oluştur</button>
                 <button class="btn primary" type="button" onclick="tekKutuOlustur('large')">Büyük Kutu Oluştur</button>
                 <button class="btn ghost" type="button" onclick="otomatikKutular()">Otomatik Karışık Kutu</button>
+                <style>
+.loader {
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #2a6a57;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin: 10px auto;
+}
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+</style>
                 
             </div>
             <div style="margin: 20px 0; padding: 15px; border: 2px dashed #2a6a57; border-radius: 10px; text-align: center;">
@@ -528,31 +549,63 @@
   </div>
 </div>
 
-
 <script type="module">
-  // Firebase çekirdek ve Firestore kütüphanelerini içe aktarıyoruz
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  import { 
+    getFirestore, 
+    collection, 
+    addDoc, 
+    getDocs, 
+    getDoc, 
+    doc, 
+    updateDoc  // <-- Bunu ekledik
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-  // Ekran görüntüsündeki GÜNCEL kimlik bilgilerin
-  const firebaseConfig = {
+const firebaseConfig = {
     apiKey: "AIzaSyAQQ2Utaak7ovZd-ghCSREMpzuR7fVwZ1k",
     authDomain: "nimet-16c13.firebaseapp.com",
-    databaseURL: "https://nimet-16c13-default-rtdb.europe-west1.firebasedatabase.app",
     projectId: "nimet-16c13",
     storageBucket: "nimet-16c13.appspot.com",
     messagingSenderId: "344231788094",
-    appId: "1:344231788094:web:b05913b9ebd12c21fc5b6f",
-    measurementId: "G-E4GE0YW7Q0"
-  };
-
-  // Firebase'i başlat
+    appId: "1:344231788094:web:b05913b9ebd12c21fc5b6f"
+};
   const app = initializeApp(firebaseConfig);
-  
-  // Nimet.js dosyasından erişebilmek için window nesnesine ekliyoruz
-  window.db = getFirestore(app);
-  window.addDoc = addDoc;
+  const db = getFirestore(app);
+
+  // Köprüleri kuruyoruz (nimet.js'nin görmesi için)
+  window.db = db;
+  window.getDoc = getDoc;
+  window.doc = doc;
   window.collection = collection;
-</script><script src="nimet.js"></script>
+  window.addDoc = addDoc;
+  window.getDocs = getDocs;
+  window.updateDoc = updateDoc; // <-- Bunu ekledik
+
+  // nimet.js'yi en son çağırıyoruz
+  const script = document.createElement('script');
+  script.src = 'nimet.js';
+  document.body.appendChild(script);
+</script>
+<!-- Giriş Yap Penceresi (Login Modal) -->
+<div id="loginModal" class="modal-backdrop" style="display: none;">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>İşletme Girişi</h3>
+      <button class="modal-close" onclick="closeLoginModal()">&times;</button>
+    </div>
+    <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Lütfen size özel tanımlanan şifre ile giriş yapın.</p>
+    
+    <label>Kullanıcı Adı / İşletme ID</label>
+    <input type="text" id="loginUser" placeholder="Örn: isletme_001">
+    
+    <label>Şifre</label>
+    <input type="password" id="loginPass" placeholder="••••••••">
+    
+    <div style="margin-top:20px; display:flex; flex-direction: column; gap:10px;">
+<button class="btn primary" onclick="window.checkLogin()">Sisteme Giriş Yap</button>        
+<button class="btn ghost" onclick="closeLoginModal()">Vazgeç</button>
+    </div>
+  </div>
+</div>
 </body>
 </html> 
