@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NİMET — Yakınındaki İşletmeler</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --turuncu: #d9902e;
+            --yesil: #2a6a57;
+            --krem: #fdf6ec;
+            --koyu: #1a1a1a;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--krem);
+            min-height: 100vh;
+        }
+
+        /* NAV */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 6%;
+            background: white;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--turuncu);
+            letter-spacing: -1px;
+            text-decoration: none;
+        }
+
+        .nav-back {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: #555;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 8px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            transition: 0.2s;
+        }
+
+        .nav-back:hover {
+            background: #f5f5f5;
+            color: var(--koyu);
+        }
+
+        /* HERO BAŞLIK */
+        .page-header {
+            text-align: center;
+            padding: 50px 6% 30px;
+        }
+
+        .page-header .pill {
+            display: inline-block;
+            background: #fff2d9;
+            color: #b47316;
+            padding: 6px 16px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 14px;
+        }
+
+        .page-header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--koyu);
+            margin-bottom: 10px;
+        }
+
+        .page-header p {
+            color: #666;
+            font-size: 16px;
+            max-width: 520px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* ANA LAYOUT */
+        .main-container {
+            display: grid;
+            grid-template-columns: 340px 1fr;
+            gap: 0;
+            height: calc(100vh - 200px);
+            max-height: 640px;
+            margin: 0 6% 50px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+        }
+
+        /* SOL PANEL */
+        .sidebar {
+            background: white;
+            overflow-y: auto;
+            border-right: 1px solid #f0f0f0;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #f0f0f0;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+        }
+
+        .sidebar-header h3 {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--koyu);
+            margin-bottom: 10px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 9px 14px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 13px;
+            font-family: 'DM Sans', sans-serif;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .search-box:focus {
+            border-color: var(--turuncu);
+            box-shadow: 0 0 0 3px rgba(217,144,46,0.1);
+        }
+
+        #isletmeListesi {
+            padding: 12px;
+        }
+
+        .isletme-kart {
+            padding: 14px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-bottom: 8px;
+            border: 1px solid transparent;
+        }
+
+        .isletme-kart:hover {
+            background: #fff8f0;
+            border-color: #ffe0b2;
+        }
+
+        .isletme-kart.aktif {
+            background: #fff3e0;
+            border-color: var(--turuncu);
+        }
+
+        .isletme-kart-adi {
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--koyu);
+            margin-bottom: 4px;
+        }
+
+        .isletme-kart-adres {
+            font-size: 12px;
+            color: #888;
+            line-height: 1.4;
+        }
+
+        .isletme-kart-badge {
+            display: inline-block;
+            background: #e8f5e9;
+            color: var(--yesil);
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 999px;
+            margin-top: 6px;
+        }
+
+        .yukleniyor {
+            text-align: center;
+            padding: 40px 20px;
+            color: #aaa;
+            font-size: 14px;
+        }
+
+        .yukleniyor-spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid #f0f0f0;
+            border-top-color: var(--turuncu);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 12px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* HARİTA */
+        #harita {
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* CUSTOM MARKER */
+        .nimet-marker {
+            background: var(--turuncu);
+            color: white;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 14px rgba(217,144,46,0.5);
+            border: 3px solid white;
+            font-size: 16px;
+        }
+
+        .nimet-marker-inner {
+            transform: rotate(45deg);
+        }
+
+        /* POPUP STILI */
+        .leaflet-popup-content-wrapper {
+            border-radius: 14px !important;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important;
+            border: none !important;
+            padding: 0 !important;
+            overflow: hidden;
+        }
+
+        .leaflet-popup-content {
+            margin: 0 !important;
+            width: 220px !important;
+        }
+
+        .popup-icerik {
+            padding: 16px;
+        }
+
+        .popup-baslik {
+            font-family: 'Playfair Display', serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--koyu);
+            margin-bottom: 6px;
+        }
+
+        .popup-adres {
+            font-size: 12px;
+            color: #777;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .popup-btn {
+            display: block;
+            background: var(--turuncu);
+            color: white;
+            text-align: center;
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: 0.2s;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .popup-btn:hover {
+            background: #c27d20;
+        }
+
+        .leaflet-popup-tip {
+            background: white !important;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: 300px 1fr;
+                height: auto;
+                max-height: none;
+                margin: 0 4% 40px;
+            }
+
+            .sidebar {
+                border-right: none;
+                border-bottom: 1px solid #f0f0f0;
+                max-height: 300px;
+            }
+
+            #harita {
+                height: 400px;
+            }
+
+            .page-header h1 {
+                font-size: 26px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="nimetmark42.html" class="logo">NİMET</a>
+    <a href="nimetmark42.html" class="nav-back">← Ana Sayfaya Dön</a>
+</nav>
+
+<div class="page-header">
+    <span class="pill">🗺️ Canlı Harita</span>
+    <h1>Yakınındaki NİMET İşletmeleri</h1>
+    <p>Bugün sürpriz kutu hazırlayan işletmeleri haritada keşfet, uygun fiyata kaliteli gıdaya ulaş.</p>
+</div>
+
+<div class="main-container">
+    <!-- SOL PANEL -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h3>İşletmeler</h3>
+            <input class="search-box" type="text" id="aramaInput" placeholder="İşletme ara...">
+        </div>
+        <div id="isletmeListesi">
+            <div class="yukleniyor">
+                <div class="yukleniyor-spinner"></div>
+                İşletmeler yükleniyor...
+            </div>
+        </div>
+    </div>
+
+    <!-- HARİTA -->
+    <div id="harita"></div>
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- Firebase -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAQQ2Utaak7ovZd-ghCSREMpzuR7fVwZ1k",
+        authDomain: "nimet-16c13.firebaseapp.com",
+        projectId: "nimet-16c13",
+        storageBucket: "nimet-16c13.appspot.com",
+        messagingSenderId: "344231788094",
+        appId: "1:344231788094:web:b05913b9ebd12c21fc5b6f"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // HARİTAYI BAŞLAT
+    const harita = L.map('harita', {
+        center: [38.4192, 27.1287], // İzmir merkezi
+        zoom: 11,
+        zoomControl: true
+    });
+
+    // Harita katmanı (ücretsiz OpenStreetMap)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(harita);
+
+    // Custom marker ikonu
+    function markerIkonu() {
+        return L.divIcon({
+            className: '',
+            html: `<div class="nimet-marker"><span class="nimet-marker-inner">🧁</span></div>`,
+            iconSize: [36, 36],
+            iconAnchor: [18, 36],
+            popupAnchor: [0, -38]
+        });
+    }
+
+    let tumIsletmeler = [];
+    let markerlar = {};
+
+    // Firebase'den işletmeleri çek
+    async function isletmeleriYukle() {
+        try {
+            const snapshot = await getDocs(collection(db, "isletmeler"));
+            const liste = document.getElementById("isletmeListesi");
+            liste.innerHTML = "";
+
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+
+                // Konum bilgisi yoksa atla
+                if (!data.lat || !data.lng) return;
+
+                tumIsletmeler.push({ id: doc.id, ...data });
+
+                // Marker oluştur
+                const marker = L.marker([data.lat, data.lng], { icon: markerIkonu() }).addTo(harita);
+
+                const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${data.lat},${data.lng}`;
+
+                // Bugün aktif mi kontrolü (24 saat)
+                let aktifMi = false;
+                let kutuHTML = "";
+
+if (data.bugun_kutular && data.bugun_kutular.length > 0 && data.son_guncelleme) {
+    const simdi = new Date();
+    const guncellemeZamani = new Date(data.son_guncelleme);
+    const farkSaat = (simdi - guncellemeZamani) / (1000 * 60 * 60);
+    aktifMi = !isNaN(guncellemeZamani) && farkSaat < 7;
+
+                    if (aktifMi) {
+                        kutuHTML = `
+                            <div style="margin: 10px 0; padding: 10px; background: #fff8f0; border-radius: 8px; border-left: 3px solid #d9902e;">
+                                <div style="font-size: 11px; font-weight: 700; color: #d9902e; margin-bottom: 6px;">🎁 BUGÜNKÜ KUTULAR</div>
+                                ${data.bugun_kutular.map(k => `
+                                    <div style="display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; border-bottom: 1px solid #f0e0cc;">
+                                        <span>${k.tip}</span>
+                                        <strong style="color: #2a6a57;">${k.fiyat} TL</strong>
+                                    </div>
+                                `).join("")}
+                                <div style="font-size: 10px; color: #aaa; margin-top: 6px;">🕐 ${data.son_guncelleme}</div>
+                            </div>
+                        `;
+                    }
+                }
+
+                marker.bindPopup(`
+                    <div class="popup-icerik">
+                        <div class="popup-baslik">${data.isletme_adi || data.isletme_id}</div>
+                        <div class="popup-adres">📍 ${data.adres || 'Adres bilgisi yok'}</div>
+                        ${kutuHTML || '<div style="font-size:12px; color:#aaa; margin: 8px 0;">Bugün henüz kutu eklenmedi.</div>'}
+                        <a href="${googleMapsUrl}" target="_blank" class="popup-btn">Google Maps'te Aç</a>
+                    </div>
+                `);
+
+                markerlar[doc.id] = marker;
+
+                // Sol panel kartı
+                const kart = document.createElement("div");
+                kart.className = "isletme-kart";
+                kart.dataset.id = doc.id;
+                const kutuSayisi = data.bugun_kutular ? data.bugun_kutular.length : 0;
+                const badgeHTML = kutuSayisi > 0
+                    ? `<span class="isletme-kart-badge" style="background:#e8f5e9; color:#2a6a57;">🎁 ${kutuSayisi} Kutu Mevcut</span>`
+                    : `<span class="isletme-kart-badge" style="background:#f5f5f5; color:#aaa;">Bugün kutu yok</span>`;
+
+                kart.innerHTML = `
+                    <div class="isletme-kart-adi">${data.isletme_adi || data.isletme_id}</div>
+                    <div class="isletme-kart-adres">📍 ${data.adres || 'Adres bilgisi yok'}</div>
+                    ${badgeHTML}
+                `;
+
+                kart.addEventListener("click", () => {
+                    harita.setView([data.lat, data.lng], 15, { animate: true });
+                    marker.openPopup();
+                    document.querySelectorAll(".isletme-kart").forEach(k => k.classList.remove("aktif"));
+                    kart.classList.add("aktif");
+                });
+
+                liste.appendChild(kart);
+            });
+
+            // Hiç işletme yoksa
+            if (tumIsletmeler.length === 0) {
+                liste.innerHTML = '<div class="yukleniyor">Henüz işletme bulunamadı.</div>';
+            }
+
+            // Tüm markerları kapsayan alana zoom yap
+            if (tumIsletmeler.length > 0) {
+                const koordinatlar = tumIsletmeler.map(i => [i.lat, i.lng]);
+                harita.fitBounds(koordinatlar, { padding: [40, 40] });
+            }
+
+        } catch (e) {
+            console.error("Yükleme hatası:", e);
+            document.getElementById("isletmeListesi").innerHTML = 
+                '<div class="yukleniyor">Bağlantı hatası oluştu.</div>';
+        }
+    }
+
+    isletmeleriYukle();
+
+    // ARAMA
+    document.getElementById("aramaInput").addEventListener("input", function() {
+        const aranan = this.value.toLowerCase();
+        document.querySelectorAll(".isletme-kart").forEach(kart => {
+            const adi = kart.querySelector(".isletme-kart-adi").textContent.toLowerCase();
+            const adres = kart.querySelector(".isletme-kart-adres").textContent.toLowerCase();
+            kart.style.display = (adi.includes(aranan) || adres.includes(aranan)) ? "block" : "none";
+        });
+    });
+</script>
+
+</body>
+</html>
