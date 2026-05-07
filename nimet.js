@@ -1,17 +1,17 @@
+const updateDoc = window.updateDoc; // Diğer window tanımlarının yanına ekle
+const db = window.db;
+const doc = window.doc;
+const getDoc = window.getDoc;
+const collection = window.collection; // Eğer hata verirse bunu da ekle
+// ÖNEMLİ: Eğer sayfa ilk açıldığında hata verirse diye boş bir kontrol ekliyoruz
+if (!db || !getDoc) {
+    console.error("Firebase henüz yüklenmedi, lütfen sayfayı yenileyin.");
+}
+
 /* ---------------- VERİ YAPILARI ---------------- */
-
-let products = {
-    "Poğaça": { gram: 60, cost: 8, hacim: 200 },
-    "Gevrek": { gram: 70, cost: 9, hacim: 250 },
-    "Kurabiye": { gram: 30, cost: 4, hacim: 50 },
-    "Baklava": { gram: 40, cost: 18, hacim: 60 },
-    "Şöbiyet": { gram: 60, cost: 25, hacim: 90 },
-    "Havuçlu Kek": { gram: 120, cost: 22, hacim: 300 },
-    "Sandviç": { gram: 180, cost: 45, hacim: 550 },
-    "Tam Buğday Ekmek": { gram: 250, cost: 12, hacim: 800 },
-    "Ekler": { gram: 35, cost: 14, hacim: 50 }
-};
-
+let products = {}; 
+let currentIsletmeId = "";
+let currentIsletmeAdi = "";
 let leftovers = {}; 
 let boxes = []; 
 
@@ -160,59 +160,145 @@ function updateImpactPanels(dailySavedGram){
     document.getElementById("bizYearWater").textContent = (dayKg * WATER_FOOTPRINT_PER_KG * 365).toLocaleString("tr-TR");
 }
 
-/* ---------------- ANA İŞLEMLER & EVENT LISTENERS ---------------- */
+// --- 1. OTURUM KONTROLÜ (Burası Sayfa Yenilenince Girişi Hatırlar) ---
+// Bu kısmı kendi başına bir async fonksiyon yapıyoruz ki await çalışabilsin
+const checkSavedLogin = async () => {
+    const isLoggedIn = localStorage.getItem("isLoggedIn");
+    const savedDocId = localStorage.getItem("savedDocId");
 
-document.addEventListener("DOMContentLoaded", ()=>{
-    const form = document.getElementById("urunForm");
-    if(form) {
-        form.addEventListener("submit", e=>{
-            e.preventDefault();
-            const name = document.getElementById("urunAd").value.trim();
-            const gram = parseFloat(document.getElementById("urunGram").value);
-            const cost = parseFloat(document.getElementById("urunMaliyet").value);
-            const hacim = parseFloat(document.getElementById("urunHacim")?.value || 200);
-
-            if(name && !isNaN(gram) && !isNaN(cost)){
-                products[name] = { gram, cost, hacim };
-                form.reset();
+    if (isLoggedIn === "true" && savedDocId) {
+        try {
+            // Bak buradaki window.doc ve window.getDoc hatasız çalışacak
+            const docRef = window.doc(window.db, "isletmeler", savedDocId);
+            const docSnap = await window.getDoc(docRef);
+            
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                currentIsletmeId = data.isletme_id;
+                currentIsletmeAdi = data.isletme_adi || data.isletme_id;
+                products = data.urunler || {};
+                
+                document.getElementById('isletme-paneli').style.display = 'block';
                 renderProducts();
                 populateModalSelect();
+                console.log("Sistem: Otomatik giriş başarılı -> " + currentIsletmeAdi);
             }
-        });
+        } catch (e) {
+            console.error("Otomatik giriş hatası:", e);
+        }
     }
+};
 
+// Fonksiyonu hemen çalıştır
+checkSavedLogin();
+    // --- 2. SAYFA İLK AÇILDIĞINDA ÇALIŞACAK RENDERLAR ---
     renderProducts();
     renderLeftovers();
     renderBoxes();
     populateModalSelect();
 
+    // --- 3. SSS (ACCORDION) AYARLARI ---
     const acc = document.querySelectorAll(".accordion");
     acc.forEach(btn => {
         btn.addEventListener("click", function () {
             this.classList.toggle("active");
             let panel = this.nextElementSibling;
-            panel.style.maxHeight = panel.style.maxHeight ? null : panel.scrollHeight + "px";
+            if (panel.style.maxHeight) {
+                panel.style.maxHeight = null;
+            } else {
+                panel.style.maxHeight = panel.scrollHeight + "px";
+            }
         });
     });
-});
 
+window.urunKaydetFonksiyonu = async (e) => {
+    // 1. Sayfanın yenilenmesini engelle
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    console.log("Sistem: Fonksiyon tetiklendi, kayıt başlıyor...");
+
+    // 2. Input elemanlarını yakala
+    const nameInput = document.getElementById("urunAd");
+    const gramInput = document.getElementById("urunGram");
+    const costInput = document.getElementById("urunMaliyet");
+    const hacimInput = document.getElementById("urunHacim");
+
+    // 3. Değerleri al ve temizle
+    const name = nameInput.value.trim();
+    const gram = parseFloat(gramInput.value);
+    const cost = parseFloat(costInput.value);
+    const hacim = parseFloat(hacimInput.value) || 200;
+
+    // 4. Boş alan kontrolü
+    if (name && !isNaN(gram) && !isNaN(cost)) {
+        try {
+            // 5. Firebase için gerekli ID ve Referansı ayarla
+            // LocalStorage boşsa senin sabit ID'ni (Martı) kullanır
+            const docId = localStorage.getItem("savedDocId") || "oYinWGPnqE36y4nrxCf7";
+            const docRef = window.doc(window.db, "isletmeler", docId);
+
+            // 6. Yerel listeyi güncelle
+            products[name] = { gram, cost, hacim };
+
+            // 7. Firebase'e uçur
+            await window.updateDoc(docRef, {
+                "urunler": products
+            });
+
+            console.log("Sistem: Firebase güncellemesi başarılı.");
+            alert("✅ " + name + " dükkan menüsüne eklendi!");
+
+            // 8. Arayüzü tazele ve formu boşalt
+            renderProducts();
+            populateModalSelect();
+
+            nameInput.value = "";
+            gramInput.value = "";
+            costInput.value = "";
+            hacimInput.value = "";
+
+        } catch (err) {
+            console.error("Firebase Hatası:", err);
+            alert("Hata: Veritabanına ulaşılamadı. Rules kısmını kontrol et!");
+        }
+    } else {
+        alert("Lütfen ürün adı, gramaj ve maliyet alanlarını doldur kanka!");
+    }
+};
 function urunSil(name){
     if(!confirm(name + " silinsin mi?")) return;
     delete products[name];
+    
+    const docId = localStorage.getItem("savedDocId");
+    if(docId) {
+        const docRef = window.doc(window.db, "isletmeler", docId);
+        window.updateDoc(docRef, { "urunler": products });
+    }
+    
     renderProducts();
     populateModalSelect();
 }
-
-function urunDuzenle(name){
+async function urunDuzenle(name){
     const p = products[name];
     const g = prompt("Yeni gramaj:", p.gram);
     const c = prompt("Yeni maliyet:", p.cost);
+    const h = prompt("Yeni hacim:", p.hacim);
     if(g && c) {
-        products[name] = { ...p, gram: parseFloat(g), cost: parseFloat(c) };
+        products[name] = { ...p, gram: parseFloat(g), cost: parseFloat(c), hacim: parseFloat(h) || p.hacim };
+        
+        const docId = localStorage.getItem("savedDocId");
+        if(docId) {
+            const docRef = window.doc(window.db, "isletmeler", docId);
+            await window.updateDoc(docRef, { "urunler": products });
+        }
+        
         renderProducts();
+        alert("✅ " + name + " güncellendi!");
     }
 }
-
 /* ---------------- MODAL & ELDE KALAN ---------------- */
 
 function openLeftoverModal(){ document.getElementById("leftoverModal").style.display = "flex"; }
@@ -430,20 +516,24 @@ document.querySelectorAll('section').forEach(section => {
 /* ---------------- FIREBASE BULUT AKTARIMI ---------------- */
 
 async function veriyiGonder() {
-    // Kutuların boş olup olmadığını kontrol et
     if (boxes.length === 0) {
-        alert("Buluta gönderilecek aktif bir kutu bulunamadı. Lütfen önce kutu oluşturun.");
+        alert("Buluta gönderilecek aktif bir kutu bulunamadı.");
         return;
     }
 
     try {
-        // Gönderilecek veri paketini hazırla
+        // Mevcut giriş yapan işletmenin bilgilerini alıyoruz
+        // Eğer giriş yapılmadıysa varsayılan değerleri kullanır
+        const suAnkiIsletmeId = currentIsletmeId || "isletme_tanimsiz";
+        const suAnkiIsletmeAdi = currentIsletmeAdi || "Tanımsız İşletme";
+
         const veriPaketi = {
-            isletmeAdi: "isletme_001", // Burası dinamikleştirilebilir
-            isletmeId: "isletme_001",
-            tarih: new Date().toISOString(),
+            isletmeId: suAnkiIsletmeId,   // Örn: "Martı"
+            isletmeAdi: suAnkiIsletmeAdi, // Örn: "Martı Fırın"
+            tarih: new Date().toLocaleString("tr-TR"), // Okunabilir tarih ve saat
+            kayitZamani: new Date().toISOString(),     // Filtreleme için teknik zaman
             kaydedilenKutular: boxes.map(box => ({
-                tip: box.label || boxLabel(box.type),
+                tip: boxLabel(box.type),
                 icerik: box.items,
                 toplamGram: box.totalGram,
                 toplamMaliyet: box.totalCost,
@@ -456,50 +546,245 @@ async function veriyiGonder() {
             }
         };
 
-        // HTML script modülünde window'a bağladığımız Firebase fonksiyonlarını kullanıyoruz
-        const docRef = await window.addDoc(window.collection(window.db, "isletme_kayitlari"), veriPaketi);
-        
-        console.log("Başarıyla kaydedildi. Belge ID:", docRef.id);
-        alert("✅ Veriler Firebase bulut sistemine başarıyla gönderildi!");
-
-        // İsteğe bağlı: Gönderim sonrası paneli sıfırla
-        // boxes = []; 
-        // renderBoxes();
+        // Veriyi yine tek koleksiyona atıyoruz ama içinde kimlik bilgisi var
+        await window.addDoc(window.collection(window.db, "isletme_kayitlari"), veriPaketi);
+        // Aynı zamanda kendi dökümanını da güncelle
+const docId = localStorage.getItem("savedDocId");
+if (docId) {
+    const docRef = window.doc(window.db, "isletmeler", docId);
+    await window.updateDoc(docRef, {
+        bugun_kutular: boxes.map(box => ({
+            tip: boxLabel(box.type),
+            fiyat: parseFloat((box.totalCost * 1.20).toFixed(2))
+        })),
+son_guncelleme: new Date().toISOString()    });
+}
+        alert(`✅ ${suAnkiIsletmeAdi} verileri başarıyla merkeze gönderildi!`);
 
     } catch (error) {
-        console.error("Firebase Hatası:", error);
-        alert("Veri gönderilirken bir sorun oluştu. Lütfen Firebase Console kurallarını kontrol edin.");
+        console.error("Gönderim hatası:", error);
+        alert("Veri gönderilemedi, lütfen tekrar deneyin.");
+    }
+}
+// Fonksiyonu globale bağlayalım ki HTML'deki butondan (onclick) çağrılabilsin
+window.veriyiGonder = veriyiGonder;
+/* ---------------- AI HAFIZA (LOGİSTİC RULES) ---------------- */
+async function hafizayiGetir() {
+    try {
+        // Firebase'deki 'ai_hafiza' klasöründeki tüm kuralları oku
+        const querySnapshot = await window.getDocs(window.collection(window.db, "ai_hafiza"));
+        let ogretiler = "";
+        
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            ogretiler += `- ${data.kural}\n`; // Her bir kuralı alt alta ekle
+        });
+        
+        return ogretiler || "Henüz özel bir sayım kuralı tanımlanmadı.";
+    } catch (e) {
+        console.error("Firebase hafıza okuma hatası:", e);
+        return "Hafıza şu an okunamıyor, standart sayıma devam et.";
+    }
+}
+/* ---------------- YENİLENMİŞ AI SİMÜLASYONU ---------------- */
+/* ---------------- 🧠 AI HAFIZA VE SİMUÜLASYON ---------------- */
+
+// Firebase'den lojistik kurallarını çeken yardımcı fonksiyon
+async function hafizayiGetir() {
+    try {
+        const querySnapshot = await window.getDocs(window.collection(window.db, "ai_hafiza"));
+        let kurallar = "";
+        querySnapshot.forEach((doc) => {
+            kurallar += `- ${doc.data().kural}\n`;
+        });
+        return kurallar || "Henüz özel bir sayım kuralı tanımlanmadı.";
+    } catch (e) {
+        console.error("Hafıza okuma hatası:", e);
+        return "Hafıza şu an okunamıyor.";
     }
 }
 
-// Fonksiyonu globale bağlayalım ki HTML'deki butondan (onclick) çağrılabilsin
-window.veriyiGonder = veriyiGonder;
-function aiSimulasyon() {
-    // 1. Yükleniyor animasyonunu göster
+async function aiSimulasyon() {
+    let API_KEY = localStorage.getItem("gemini_api_key");
+    if (!API_KEY) {
+        API_KEY = prompt("Lütfen Google AI API anahtarınızı girin:");
+        if (API_KEY) localStorage.setItem("gemini_api_key", API_KEY);
+        else return;
+    }
+
+    const fileInput = document.getElementById('aiKamera');
+    if (!fileInput || !fileInput.files[0]) { alert("Fotoğraf seçilmedi!"); return; }
+
     document.getElementById('aiYukleniyor').style.display = 'block';
     
-    // 2. 3 saniye bekle (Sanki AI düşünüyormuş gibi)
-    setTimeout(() => {
-        // 3. Simülasyon verileri (Buraya istediğin rakamları yazabilirsin)
-        const saptananUrunler = {
-            "Gevrek": 42,
-            "Poğaça": 17,
-            "Kurabiye": 38
-        };
+    // 1. Önce Firebase'den öğretilen lojistik kuralları çekiyoruz
+    const lojistikKurallar = await hafizayiGetir();
 
-        // 4. Bu verileri sisteme (leftovers) aktar
-        Object.keys(saptananUrunler).forEach(name => {
-            leftovers[name] = (leftovers[name] || 0) + saptananUrunler[name];
+    const reader = new FileReader();
+    reader.onload = async function() {
+        const base64Image = reader.result.split(',')[1];
+        
+        // 2. Prompt'u veritabanı kurallarıyla besliyoruz
+const promptText = `
+    Sen profesyonel bir Lojistik Envanter Denetçisisin. Fotoğrafı 3 ana dikey bölgeye ayırarak 'Master Data' tanımlarına göre sayım yap:
+    
+    REFERANS VERİLERİ (Görsel):
+    Fotoğrafta görülen düzeni lojistik referans kabul et.
+    
+    1. SOL BÖLGE (Tepsi 1): Sadece 'Poğaça' bulunur. 
+       - *Görsel Tanım:* Kapalı, yuvarlak veya oval 'pofuduk' (kabarmış/soft) hamur kütleleri.
+       - *Kritik Bilgi:* Bazılarının üzerinde bol susam (en alttakiler), bazılarının üzerinde sadece parlak fırınlanmış kabuk olabilir (en üsttekiler). Görünüşleri farklı olsa da, bu bölgedeki kapalı hamur kütlelerinin %100'ünü 'Poğaça' olarak kaydet. Asla Açma veya Simit ile karıştırma.
+       - *Öğrenilen Bilgi:* Fotoğrafta tam olarak 16 adet poğaça vardır.
+
+    2. ORTA BÖLGE (Tepsi 2): Sadece 'Açma' bulunur.
+       - *Görsel Tanım:* Dairesel, halka şeklinde, hamurları 'twisted' (bükülmüş/burgulu) duran kütleler.
+       - *Kritik Bilgi:* Poğaça değildir (kapalı hamur değil) ve Gevrek/Simit değildir. Simit'e çok benzer ancak Gevrek kadar bol susamlı değildir. Bu bölgedeki burgulu dairesel ürünleri 'Açma' say.
+       - *Öğrenilen Bilgi:* Fotoğrafta tam olarak 13 adet açma vardır.
+
+    3. SAĞ BÖLGE (Tepsi 3): Sadece 'Gevrek' (Simit) bulunur.
+       - *Görsel Tanım:* Tam dairesel, halka şeklinde kütleler.
+       - *Kritik Bilgi:* 'Bol susamlı' ve 'tam dairesel'. Ortasındaki boşluk (delik) çok keskin ve geniştir. Hamuru burgulu değildir, düz ve susamla kaplıdır.
+       - *Öğrenilen Bilgi:* Fotoğrafta tam olarak 3 adet gevrek vardır.
+    
+    SAYIM TALİMATI:
+    Yukarıdaki lojistik master verilerine ve görsel üzerindeki desenlere göre yeni fotoğrafı say. Kategorizasyonu bu kurallara göre yap ve sadece JSON dön: {"ÜrünAdı": Adet}
+`;        
+        // 2026'nın güncel ve kararlı modeli
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: promptText }, { inline_data: { mime_type: "image/jpeg", data: base64Image } }] }]
+                })
+            });
+
+            const data = await response.json();
+            
+            if (data.candidates && data.candidates[0]) {
+                let aiText = data.candidates[0].content.parts[0].text;
+                const cleanJson = aiText.replace(/```json|```/g, "").trim();
+                const saptananUrunler = JSON.parse(cleanJson);
+
+                leftovers = {}; 
+                Object.keys(saptananUrunler).forEach(name => {
+                    if (products[name]) leftovers[name] = saptananUrunler[name];
+                });
+
+                renderLeftovers();
+                document.getElementById('aiYukleniyor').style.display = 'none';
+                alert("✅ AI Hafızasındaki kurallara göre sayım tamamlandı!");
+                otomatikKutular();
+            }
+        } catch (e) {
+            console.error("AI Hatası:", e);
+            document.getElementById('aiYukleniyor').style.display = 'none';
+        }
+    };
+    reader.readAsDataURL(fileInput.files[0]);
+}
+
+window.aiSimulasyon = aiSimulasyon;
+// Giriş Penceresini Açan Fonksiyon
+window.showLoginModal = function() {
+    document.getElementById('loginModal').style.display = 'flex';
+}
+
+// Giriş Penceresini Kapatan Fonksiyon
+window.closeLoginModal = function() {
+    document.getElementById('loginModal').style.display = 'none';
+}
+
+// Giriş Bilgilerini Kontrol Eden Fonksiyon
+// İşletme veri tabanı simülasyonu (Burada her işletmeye özel ürünler tanımlı)
+const isletmeVerileri = {
+    "isletme_001": {
+        ad: "İstanbul Simit Dünyası",
+        urunler: {
+            "Poğaça": { gram: 60, cost: 8, hacim: 200 },
+            "Gevrek": { gram: 70, cost: 9, hacim: 250 }
+        }
+    },
+    "isletme_002": {
+        ad: "Acarlar Unlu Mamülleri",
+        urunler: {
+            "Kurabiye": { gram: 30, cost: 4, hacim: 50 },
+            "Baklava": { gram: 40, cost: 18, hacim: 60 }
+        }
+    }
+};
+
+/* ---------------- FIREBASE İLE GİRİŞ SİSTEMİ ---------------- */
+
+// Firebase'in gerekli araçlarını içe aktarıyoruz (Daha önce eklemediysen)
+
+window.checkLogin = async function() {
+    const userInput = document.getElementById('loginUser').value.trim();
+    const passInput = document.getElementById('loginPass').value.trim();
+
+    if (!userInput || !passInput) {
+        alert("Kullanıcı adı ve şifreyi doldur!");
+        return;
+    }
+
+    try {
+        // Tüm isletmeler koleksiyonunu tara, isletme_id'si eşleşeni bul
+        const querySnapshot = await window.getDocs(window.collection(window.db, "isletmeler"));
+        
+        let bulunanDoc = null;
+        let bulunanDocId = null;
+
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            if (data.isletme_id === userInput) {
+                bulunanDoc = data;
+                bulunanDocId = doc.id;
+            }
         });
 
-        // 5. Ekranı güncelle
-        renderLeftovers();
-        document.getElementById('aiYukleniyor').style.display = 'none';
-        
-        alert("✅ Yapay Zeka Başarıyla Saydı:\n- 42 Gevrek (Açmalar dahil)\n- 17 Poğaça\n- 38 Kurabiye");
-        
-        // 6. OTOMATİK PAKETLEMEYİ TETİKLE (Senin en sevdiğin kısım)
-        otomatikKutular();
-        
-    }, 3000);
+        if (!bulunanDoc) {
+            alert("Bu işletme bulunamadı!");
+            return;
+        }
+
+        if (bulunanDoc.sifre !== passInput) {
+            alert("Şifre yanlış!");
+            return;
+        }
+
+        // Başarılı giriş
+        products = bulunanDoc.urunler || {};
+        currentIsletmeId = bulunanDoc.isletme_id;
+        currentIsletmeAdi = bulunanDoc.isletme_adi || bulunanDoc.isletme_id;
+
+        localStorage.setItem("isLoggedIn", "true");
+        localStorage.setItem("savedDocId", bulunanDocId);
+
+        document.getElementById('isletme-paneli').style.display = 'block';
+        renderProducts();
+        populateModalSelect();
+        window.closeLoginModal();
+
+        alert("Hoş geldin " + currentIsletmeAdi + "!");
+        document.getElementById('isletme-paneli').scrollIntoView({ behavior: 'smooth' });
+
+    } catch (e) {
+        console.error("Giriş Hatası:", e);
+        alert("Bağlantı hatası oluştu.");
+    }
+}
+window.cikisYap = function() {
+    if(confirm("Çıkış yapmak istediğine emin misin?")) {
+        localStorage.removeItem("isLoggedIn");
+        localStorage.removeItem("savedDocId");
+        currentIsletmeId = "";
+        currentIsletmeAdi = "";
+        products = {};
+        leftovers = {};
+        boxes = [];
+        document.getElementById('isletme-paneli').style.display = 'none';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 }
