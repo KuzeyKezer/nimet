@@ -730,3 +730,37 @@ html {
     opacity: 1;
     transform: translateY(0);
 }
+/* --- NAVİGASYON GÜNCELLEME (ESKİSİYLE DEĞİŞTİRİN) --- */
+.main-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    /* 12% değeri butonları ekranın sağ köşesinden kurtarıp içeri alır */
+    padding: 30px 12%; 
+    box-sizing: border-box; 
+    z-index: 100;
+}
+
+.nav-links {
+    display: flex;
+    gap: 30px; 
+    align-items: center;
+}
+
+.main-nav .logo {
+    font-size: 24px;
+    font-weight: 900;
+    color: #d9902e;
+    letter-spacing: -1px;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: #333;
+    font-weight: 600;
+    font-size: 14px;
+}
